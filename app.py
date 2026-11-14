@@ -1,6 +1,7 @@
 import os
 from flask import Flask
-from models import db
+from flask_login import LoginManager
+from models import db, User
 
 def create_app():
     app = Flask(__name__)
@@ -17,8 +18,23 @@ def create_app():
 
     db.init_app(app)
 
+    #setup Flask-Login session manager
+    login_manager = LoginManager()
+    login_manager.login_view = 'main.login'
+    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.login_message_category = 'warning'
+    login_manager.init_app(app)
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
+    #register app blueprints
+    from routes import main_bp
+    app.register_blueprint(main_bp)
+
     return app
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True)
+    app.run(debug=True, port=5000)

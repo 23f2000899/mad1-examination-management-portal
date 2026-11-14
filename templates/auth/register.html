@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-md-6 col-lg-5">
+        <div class="card p-4">
+            <h4 class="fw-bold text-center text-primary mb-3">Create an Account</h4>
+            <form action="{{ url_for('main.register')}}" method="POST">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Full Name</label>
+                    <input type="text" class="form-control" name="full_name" placeholder="Jane Doe" required>
+                </div>
+                <div class="mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Username</label>
+                        <input type="text" class="form-control" name="username" placeholder="janedoe007" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Email</label>
+                        <input type="email" class="form-control" name="email" placeholder="janedoe@example.com" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Password</label>
+                        <input type="password" class="form-control" name="password" placeholder="........" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Confirm Password</label>
+                        <input type="password" class="form-control" name="confirm_password" placeholder="........" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold d-block">Register <Aside></Aside></label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="role" id="r_student" value="student" checked onchange="toggleDept()">
+                        <label class="form-check-label" for="r_student">Student</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="role" id="r_examiner" value="examiner" onchange="toggleDept()">
+                        <label class="form-check-label" for="r_examiner">Examiner (Faculty)</label>
+                    </div>
+                </div>
+                <div id="faculty_fields" style="display:none;" class="p-3 bg-light rounded border mb-3">
+                    <label class="form-label small fw-semibold">Department</label>
+                    <input type="text" class="form-control form-control-sm" name="department" placeholder="e.g. Computer Science">
+
+                    <label class="form-label small fw-semibold">Contact Number</label>
+                    <input type="text" class="form-control form-control-sm" name="contact_number">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Register</button>
+            </form>
+            <div class="text-center mt-3 pt-3 border-top">
+                <span class="small text-muted">Already have an account? </span>
+                <a href="{{ url_for('main.login') }}" class="small fw-semibold text-decoration-none">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+
+<script>
+    function toggleDept() {
+        var isExaminer = document.getElementById('r_examiner').checked;
+        document.getElementById('faculty_fields').style.display = isExaminer ? 'block' : 'none';
+    }
+</script>
+{% endblock %}

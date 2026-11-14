@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Pending Approval{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center my-5">
+    <div class="col-md-6 text-center">
+        <div class="card p-5">
+            <span class="badge bg-warning text-dark mx-auto mb-3 fs-6 px-3 py-2">Pending Admin Approval</span>
+            <h4 class="fw-bold mb-2">Faculty Account Awaiting Review</h4>
+            <p class="text-muted">
+                Your faculty account has been registered, but per security policy, an administrator must approve it before you can access the examiner dashboard.
+            </p>
+            <a href="{{ url_for('main.logout') }}" class="btn btn-outline-secondary mt-3">Logout</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
