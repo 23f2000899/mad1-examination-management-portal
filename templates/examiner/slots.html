@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Slots &middot; Examiner{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">Examination Slot Scheduling</h3>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#createSlotForm">+ Create Slot</button>
+</div>
+
+
+<!-- Create Slot Collapsible Form -->
+ 
+<div class="collapse mb-4" id="createSlotForm">
+    <div class="card p-3">
+        <h5 class="fw-bold text-primary mb-3">Create New Slot</h5>
+        {% if open_exams %}
+        <form action="{{ url_for('main.examiner_create_slot') }}" method="POST" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">Examination</label>
+                <select class="form-select form-select-sm" name="exam_id" required>
+                    {% for ex in open_exams %}
+                        <option value="{{ ex.id }}">{{ ex.course.code }} &middot; {{ ex.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">Date</label>
+                <input type="date" class="form-control form-control-sm" name="date" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Start Time</label>
+                <input type="time" class="form-control form-control-sm" name="start_time" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">End Time</label>
+                <input type="time" class="form-control form-control-sm" name="end_time" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Student Capacity</label>
+                <input type="number" class="form-control form-control-sm" name="max_capacity" value="1" min="1" required>
+            </div>
+            <div class="col-12 text-end">
+                <button type="submit" class="btn btn-primary btn-sm">Publish Slot</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="alert alert-warning mb-0">No examinations are currently open for slot creation.</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">My Scheduled Slots ({{ slots|length }})</div>
+    <table class="table mb-0 align-middle">
+        <thead>
+            <tr><th>ID</th><th>Exam</th><th>Date & Time</th><th>Capacity</th><th>Bookings</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for s in slots %}
+            <tr>
+                <td>#{{ s.id }}</td>
+                <td class="fw-semibold">{{ s.examination.name }}</td>
+                <td>{{ s.date }} ({{ s.start_time.strftime('%H:%M') }} - {{ s.end_time.strftime('%H:%M') }})</td>
+                <td>{{ s.available_seats }} / {{ s.max_capacity }} seats</td>
+                <td><a href="{{ url_for('main.examiner_slot_students', slot_id=s.id) }}">{{ s.bookings|length }} student(s)</a></td>
+                <td class="text-end">
+                    {% if s.bookings|length == 0 %}
+                        <a href="{{ url_for('main.examiner_edit_slot', slot_id=s.id) }}" class="btn btn-outline-primary btn-sm me-1">Edit</a>
+                        <form action="{{ url_for('main.examiner_delete_slot', slot_id=s.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete slot?');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                        </form>
+                    {% else %}
+                        <span class="badge bg-light text-muted border">Locked (Booked)</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

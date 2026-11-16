@@ -53,6 +53,14 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.admin_search') }}">Search</a>
                     </li>
+
+                    {% elif current_user.is_authenticated and current_user.role == 'examiner' and current_user.is_approved %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.examiner_dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.examiner_slots') }}">Slots</a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>

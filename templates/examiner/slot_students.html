@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Booked Students &middot; Slot #{{ slot.id }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">{{ slot.examination.name }} &middot; Slot #{{ slot.id }}</h3>
+        <p class="text-muted small mb-0">{{ slot.date }} ({{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }})</p>
+    </div>
+    <a href="{{ url_for('main.examiner_dashboard') }}" class="btn btn-outline-secondary btn-sm">&larr; Back to Dashboard</a>
+</div>
+
+<div class="card">
+    <div class="card-header">Booked Candidates ({{ bookings|length }})</div>
+    <table class="table mb-0 align-middle">
+        <thead>
+            <tr><th>Student Name</th><th>Email</th><th>Booking Status</th><th>Grade / Score</th><th class="text-end">Action</th></tr>
+        </thead>
+        <tbody>
+            {% for b in bookings %}
+            <tr>
+                <td class="fw-semibold">{{ b.student.full_name }}</td>
+                <td class="small text-muted">{{ b.student.email }}</td>
+                <td><span class="badge bg-primary">{{ b.status }}</span></td>
+                <td>
+                    {% if b.evaluation %}
+                        <span class="fw-bold text-success">{{ b.evaluation.total_marks }} / {{ slot.examination.max_marks }} pts</span>
+                    {% else %}
+                        <span class="text-muted small">Pending</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a href="{{ url_for('main.examiner_evaluate_student', booking_id=b.id) }}" class="btn btn-primary btn-sm">
+                        {{ 'Re-Evaluate' if b.evaluation else 'Evaluate Candidate' }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
