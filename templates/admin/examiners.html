@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Examiners &middot; Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">Faculty Examiners</h3>
+    <form method="GET" class="d-flex" style="max-width: 280px;">
+        <input type="text" name="search" class="form-control form-control-sm me-2" placeholder="Search name..." value="{{ search }}">
+        <button type="submit" class="btn btn-outline-secondary btn-sm">Filter</button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">Registered Faculty ({{ examiners|length }})</div>
+    <table class="table mb-0 align-middle">
+        <thead>
+            <tr><th>Name</th><th>Username & Email</th><th>Department</th><th>Approval</th><th>State</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for ex in examiners %}
+            <tr>
+                <td class="fw-semibold">{{ ex.full_name }}</td>
+                <td class="small"><div>@{{ ex.username }}</div><div class="text-muted">{{ ex.email }}</div></td>
+                <td>{{ ex.examiner_profile.department if ex.examiner_profile else 'N/A' }}</td>
+                <td>
+                    {% if ex.is_approved %}
+                        <span class="badge bg-success">Approved</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if ex.is_active_user %}
+                        <span class="badge bg-light text-success border">Active</span>
+                    {% else %}
+                        <span class="badge bg-light text-danger border">Deactivated</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    {% if not ex.is_approved %}
+                        <form action="{{ url_for('main.admin_approve_examiner', user_id=ex.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-success btn-sm me-1">Approve</button>
+                        </form>
+                    {% endif %}
+                    <form action="{{ url_for('main.admin_toggle_user_status', user_id=ex.id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                            {{ 'Deactivate' if ex.is_active_user else 'Activate' }}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

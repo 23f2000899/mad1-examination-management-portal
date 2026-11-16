@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Course &middot; Admin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h4 class="fw-bold mb-3 text-primary">Edit Course &middot; {{ course.code }}</h4>
+            <form action="{{ url_for('main.admin_edit_course', course_id=course.id) }}" method="POST">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Course Name</label>
+                    <input type="text" class="form-control" name="name" value="{{ course.name }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="Active" {% if course.status == 'Active' %}selected{% endif %}>Active</option>
+                        <option value="Inactive" {% if course.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Description</label>
+                    <textarea class="form-control" name="description" rows="3">{{ course.description }}</textarea>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('main.admin_courses') }}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Update Course</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

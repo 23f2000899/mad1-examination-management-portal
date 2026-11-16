@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Rubrics &middot; {{ exam.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">{{ exam.name }} &middot; Rubrics</h3>
+        <span class="badge bg-secondary">{{ exam.course.code }}</span>
+        <span class="text-muted small ms-2">Total Exam Marks: <strong>{{ exam.max_marks }}</strong></span>
+    </div>
+    <a href="{{ url_for('main.admin_examinations') }}" class="btn btn-outline-secondary btn-sm">&larr; Back to Exams</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card p-3">
+            <h5 class="fw-bold text-primary mb-3">Add Evaluation Criterion</h5>
+            <form action="{{ url_for('main.admin_rubrics', exam_id=exam.id) }}" method="POST">
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold">Criterion Name</label>
+                    <input type="text" class="form-control form-control-sm" name="criterion_name" placeholder="e.g. Viva Defense" required>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Max Marks</label>
+                        <input type="number" class="form-control form-control-sm" name="max_marks" value="25" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Weightage (%)</label>
+                        <input type="number" class="form-control form-control-sm" name="weightage" value="25" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Description</label>
+                    <textarea class="form-control form-control-sm" name="description" rows="2" placeholder="Criteria guidance..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm w-100">+ Add Rubric</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">Configured Rubrics ({{ rubrics|length }})</div>
+            <table class="table mb-0 align-middle">
+                <thead>
+                    <tr><th>Criterion</th><th>Max Marks</th><th>Weightage</th><th>Description</th><th class="text-end">Action</th></tr>
+                </thead>
+                <tbody>
+                    {% for r in rubrics %}
+                    <tr>
+                        <td class="fw-semibold">{{ r.criterion_name }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ r.max_marks }} pts</span></td>
+                        <td>{{ r.weightage }}%</td>
+                        <td class="small text-muted">{{ r.description }}</td>
+                        <td class="text-end">
+                            <form action="{{ url_for('main.admin_delete_rubric', rubric_id=r.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Remove rubric?');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

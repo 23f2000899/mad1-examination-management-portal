@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Search &middot; Admin{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">Portal Search</h3>
+    <p class="text-muted small">Search students, examiners, or examinations</p>
+</div>
+
+<div class="card p-3 mb-4">
+    <form method="GET" action="{{ url_for('main.admin_search') }}">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search by name, email, or exam title..." value="{{ q }}" required>
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+    </form>
+</div>
+
+{% if q %}
+    <h6 class="fw-bold text-secondary mb-3">Results for "{{ q }}":</h6>
+
+    <!-- Matching Users -->
+    <div class="card mb-4">
+        <div class="card-header">Users ({{ users|length }})</div>
+        <table class="table mb-0 align-middle">
+            <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th></tr></thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td class="fw-semibold">{{ u.full_name }}</td>
+                    <td>@{{ u.username }}</td>
+                    <td>{{ u.email }}</td>
+                    <td><span class="badge bg-primary text-uppercase">{{ u.role }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Matching Exams -->
+    <div class="card">
+        <div class="card-header">Examinations ({{ exams|length }})</div>
+        <table class="table mb-0 align-middle">
+            <thead><tr><th>Title</th><th>Course</th><th>Type</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for e in exams %}
+                <tr>
+                    <td class="fw-semibold">{{ e.name }}</td>
+                    <td><span class="badge bg-secondary">{{ e.course.code }}</span></td>
+                    <td>{{ e.exam_type }}</td>
+                    <td><span class="badge bg-info text-dark">{{ e.status }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

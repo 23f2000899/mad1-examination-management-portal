@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Examination &middot; Admin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-lg-8">
+        <div class="card p-4">
+            <h4 class="fw-bold mb-3 text-primary">Edit Examination &middot; {{ exam.name }}</h4>
+            <form action="{{ url_for('main.admin_edit_examination', exam_id=exam.id) }}" method="POST" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Course</label>
+                    <select class="form-select" name="course_id" required>
+                        {% for c in courses %}
+                            <option value="{{ c.id }}" {% if c.id == exam.course_id %}selected{% endif %}>{{ c.code }} - {{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Title</label>
+                    <input type="text" class="form-control" name="name" value="{{ exam.name }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Type</label>
+                    <select class="form-select" name="exam_type">
+                        <option value="Viva" {% if exam.exam_type == 'Viva' %}selected{% endif %}>Viva</option>
+                        <option value="Practical" {% if exam.exam_type == 'Practical' %}selected{% endif %}>Practical</option>
+                        <option value="Project Demo" {% if exam.exam_type == 'Project Demo' %}selected{% endif %}>Project Demo</option>
+                        <option value="Assessment" {% if exam.exam_type == 'Assessment' %}selected{% endif %}>Assessment</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Duration (Mins)</label>
+                    <input type="number" class="form-control" name="duration" value="{{ exam.duration }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold">Max Marks</label>
+                    <input type="number" class="form-control" name="max_marks" value="{{ exam.max_marks }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="Draft" {% if exam.status == 'Draft' %}selected{% endif %}>Draft</option>
+                        <option value="Slot Creation" {% if exam.status == 'Slot Creation' %}selected{% endif %}>Slot Creation</option>
+                        <option value="Booking Open" {% if exam.status == 'Booking Open' %}selected{% endif %}>Booking Open</option>
+                        <option value="Closed" {% if exam.status == 'Closed' %}selected{% endif %}>Closed</option>
+                        <option value="Completed" {% if exam.status == 'Completed' %}selected{% endif %}>Completed</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Assigned Examiner</label>
+                    <select class="form-select" name="assigned_examiner_id">
+                        <option value="">-- Open to All --</option>
+                        {% for ex in examiners %}
+                            <option value="{{ ex.id }}" {% if ex.id == exam.assigned_examiner_id %}selected{% endif %}>{{ ex.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Slot Creation Start</label>
+                    <input type="date" class="form-control" name="slot_creation_start" value="{{ exam.slot_creation_start }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Slot Creation End</label>
+                    <input type="date" class="form-control" name="slot_creation_end" value="{{ exam.slot_creation_end }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Booking Start</label>
+                    <input type="date" class="form-control" name="slot_booking_start" value="{{ exam.slot_booking_start }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Booking End</label>
+                    <input type="date" class="form-control" name="slot_booking_end" value="{{ exam.slot_booking_end }}" required>
+                </div>
+                <div class="col-12 text-end">
+                    <a href="{{ url_for('main.admin_examinations') }}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

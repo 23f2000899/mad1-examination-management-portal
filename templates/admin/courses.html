@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Courses &middot; Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">Course Management</h3>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#addCourseForm">+ New Course</button>
+</div>
+
+<!-- Add Course Collapsible Form -->
+<div class="collapse mb-4" id="addCourseForm">
+    <div class="card p-3">
+        <h5 class="fw-bold text-primary mb-3">Add Academic Course</h5>
+        <form action="{{ url_for('main.admin_add_course') }}" method="POST" class="row g-2">
+            <div class="col-md-3">
+                <input type="text" class="form-control form-control-sm" name="code" placeholder="Code (e.g. CS101)" required>
+            </div>
+            <div class="col-md-6">
+                <input type="text" class="form-control form-control-sm" name="name" placeholder="Course Name" required>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" name="status">
+                    <option value="Active" selected>Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <textarea class="form-control form-control-sm" name="description" rows="2" placeholder="Course description..."></textarea>
+            </div>
+            <div class="col-12 text-end">
+                <button type="submit" class="btn btn-primary btn-sm">Save Course</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Registered Courses ({{ courses|length }})</span>
+        <form method="GET" class="d-flex" style="max-width: 250px;">
+            <input type="text" name="search" class="form-control form-control-sm me-2" placeholder="Search..." value="{{ search }}">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Search</button>
+        </form>
+    </div>
+    <table class="table mb-0 align-middle">
+        <thead>
+            <tr><th>Code</th><th>Course Name</th><th>Description</th><th>Status</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for c in courses %}
+            <tr>
+                <td><span class="badge bg-secondary">{{ c.code }}</span></td>
+                <td class="fw-semibold">{{ c.name }}</td>
+                <td class="small text-muted">{{ c.description or 'No description' }}</td>
+                <td><span class="badge bg-success">{{ c.status }}</span></td>
+                <td class="text-end">
+                    <a href="{{ url_for('main.admin_edit_course', course_id=c.id) }}" class="btn btn-outline-primary btn-sm me-1">Edit</a>
+                    <form action="{{ url_for('main.admin_delete_course', course_id=c.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this course?');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

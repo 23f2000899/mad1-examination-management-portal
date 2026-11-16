@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin &middot; Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Administrative Overview</h3>
+        <p class="text-muted small mb-0">Portal metrics, timeline monitoring, and faculty approvals</p>
+    </div>
+    <div>
+        <a href="{{ url_for('main.admin_examinations')}}" class="btn btn-primary btn-sm me-2">+ Schedule Exam</a>
+        <a href="{{ url_for('main.admin_courses')}}" class="btn btn-outline-secondary btn-sm">+ Add Course</a>
+    </div>
+</div>
+
+
+<!-- 6 Stat Cards (Matching problem statement requirements) -->
+
+<div class="row g-3 mb-4">
+    <div class="col-md-2"><div class="card p-3 text-center"><small class="text-muted fw-bold">COURSES</small><h3 class="mb-0">{{total_courses}}</h3></div></div>
+    <div class="col-md-2"><div class="card p-3 text-center"><small class="text-muted fw-bold">EXAMS</small><h3 class="mb-0 text-primary">{{total_exams}}</h3></div></div>
+    <div class="col-md-2"><div class="card p-3 text-center"><small class="text-muted fw-bold">EXAMINERS</small><h3 class="mb-0 text-success">{{total_examiners}}</h3></div></div>
+    <div class="col-md-2"><div class="card p-3 text-center"><small class="text-muted fw-bold">STUDENTS</small><h3 class="mb-0 text-info ">{{total_students}}</h3></div></div>
+    <div class="col-md-2"><div class="card p-3 text-center"><small class="text-muted fw-bold">SLOTS</small><h3 class="mb-0">{{total_slots}}</h3></div></div>
+    <div class="col-md-2"><div class="card p-3 text-center"><small class="text-muted fw-bold">BOOKINGS</small><h3 class="mb-0 text-warning">{{total_bookings}}</h3></div></div>
+</div>
+
+
+<!-- Pending Approvals Alert -->
+
+{% if pending_examiners %}
+<div class="card mb-4 border-warning">
+    <div class="card-header bg-warning bg-opacity-25 fw-bold">Pending Examiner Approvals ({{ pending_examiners|length }})</div>
+    <table class="table mb-0 align-middle">
+        <thead>
+            <tr><th>Faculty Name</th><th>Department</th><th>Email</th><th class="text-end">Action</th></tr>
+        </thead>
+        <tbody>
+            {% for ex in pending_examiners %}
+            <tr>
+                <td class="fw-semibold">{{ ex.full_name }}</td>
+                <td>{{ ex.examiner_profile.department if ex.examiner_profile else 'N/A' }}</td>
+                <td>{{ ex.email }}</td>
+                <td class="text-end">
+                    <form action="{{ url_for('main.admin_approve_examiner', user_id=ex.id) }}" method="POST">
+                        <button type="submit" class="btn btn-success btn-sm">Approve Access</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+
+<!-- Recent Exams Table -->
+
+<div class="card">
+    <div class="card-header">Recent Examinations</div>
+    <table class="table mb-0 align-middle">
+        <thead>
+            <tr><th>Title</th><th>Course</th><th>Type</th><th>Duration</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+            {% for e in recent_exams %}
+            <tr>
+                <td class="fw-semibold">{{ e.name }}</td>
+                <td><span class="badge bg-secondary">{{ e.course.code }}</span></td>
+                <td>{{ e.exam_type }}</td>
+                <td>{{ e.duration }} mins</td>
+                <td><span class="badge bg-info text-dark">{{ e.status }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
