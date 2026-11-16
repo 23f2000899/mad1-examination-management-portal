@@ -400,8 +400,9 @@ def admin_examiners():
     query = User.query.filter_by(role='examiner')
     if search:
         query = query.filter((User.full_name.ilike(f'%{search}%')) | (User.username.ilike(f'%{search}%')))
-        examiners = query.order_by(User.id.desc()).all()
-        return render_template('admin/examiners.html', examiners=examiners, search=search)
+    
+    examiners = query.order_by(User.id.desc()).all()
+    return render_template('admin/examiners.html', examiners=examiners, search=search)
 
 
 @main_bp.route('/admin/examiner/<int:user_id>/approve', methods=['POST'])
