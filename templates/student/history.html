@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}My Examination History &middot; Student{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">Examination History & Results</h3>
+    <a href="{{ url_for('main.student_exams') }}" class="btn btn-primary btn-sm">+ Book Examination</a>
+</div>
+
+<div class="card">
+    <div class="card-header">All Examination Enrollments ({{ bookings|length }})</div>
+    <table class="table mb-0 align-middle">
+        <thead>
+            <tr><th>Booking ID</th><th>Examination</th><th>Course</th><th>Date & Time</th><th>Status</th><th>Score</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+            {% if bookings %}
+                {% for b in bookings %}
+                <tr>
+                    <td>#{{ b.id }}</td>
+                    <td class="fw-semibold">{{ b.slot.examination.name }}</td>
+                    <td><span class="badge bg-secondary">{{ b.slot.examination.course.code }}</span></td>
+                    <td>{{ b.slot.date }} ({{ b.slot.start_time.strftime('%H:%M') }})</td>
+                    <td>
+                        {% if b.status == 'Booked' %}<span class="badge bg-primary">Booked</span>
+                        {% elif b.status == 'Completed' %}<span class="badge bg-success">Completed</span>
+                        {% else %}<span class="badge bg-danger">Cancelled</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if b.evaluation %}
+                            <span class="fw-bold text-success">{{ b.evaluation.total_marks }} / {{ b.slot.examination.max_marks }}</span>
+                        {% else %}
+                            <span class="text-muted small">&mdash;</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if b.evaluation %}
+                            <a href="{{ url_for('main.student_view_result', booking_id=b.id) }}" class="btn btn-outline-success btn-sm">View Scorecard</a>
+                        {% elif b.status == 'Booked' %}
+                            <form action="{{ url_for('main.student_cancel_booking', booking_id=b.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Cancel booking?');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+                            </form>
+                        {% else %}
+                            <span class="text-muted small">No action</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No examination bookings recorded.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

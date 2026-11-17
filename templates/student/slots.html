@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Slot &middot; {{ exam.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">{{ exam.name }} &middot; Slot Booking</h3>
+        <span class="badge bg-secondary">{{ exam.course.code }}</span>
+        <span class="text-muted small ms-2">Duration: {{ exam.duration }} mins &middot; Max Marks: {{ exam.max_marks }}</span>
+    </div>
+    <a href="{{ url_for('main.student_exams') }}" class="btn btn-outline-secondary btn-sm">&larr; Back to Exams</a>
+</div>
+
+{% if existing_booking %}
+<div class="alert alert-warning mb-4">
+    <strong>Notice:</strong> You already have a confirmed booking for this exam on 
+    <strong>{{ existing_booking.slot.date }} at {{ existing_booking.slot.start_time.strftime('%H:%M') }}</strong>. 
+    Duplicate bookings are not permitted.
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">Available Time Slots ({{ slots|length }})</div>
+    <table class="table mb-0 align-middle">
+        <thead>
+            <tr><th>Slot ID</th><th>Date</th><th>Time</th><th>Examiner</th><th>Seats Available</th><th class="text-end">Action</th></tr>
+        </thead>
+        <tbody>
+            {% if slots %}
+                {% for slot in slots %}
+                <tr>
+                    <td>#{{ slot.id }}</td>
+                    <td class="fw-semibold">{{ slot.date }}</td>
+                    <td>{{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}</td>
+                    <td>{{ slot.examiner.full_name }}</td>
+                    <td><span class="badge bg-success">{{ slot.available_seats }} seat(s) left</span></td>
+                    <td class="text-end">
+                        {% if existing_booking %}
+                            <button class="btn btn-secondary btn-sm" disabled>Already Booked</button>
+                        {% elif slot.available_seats <= 0 %}
+                            <button class="btn btn-outline-secondary btn-sm" disabled>Full</button>
+                        {% else %}
+                            <form action="{{ url_for('main.student_book_slot', slot_id=slot.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Confirm booking?');">
+                                <button type="submit" class="btn btn-success btn-sm">Book This Slot</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="6" class="text-center py-4 text-muted">No open slots available for this examination.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

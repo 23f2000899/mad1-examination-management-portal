@@ -61,6 +61,17 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.examiner_slots') }}">Slots</a>
                     </li>
+
+                    {% elif current_user.is_authenticated and current_user.role == 'student' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.student_dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.student_exams') }}">Available Exams</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.student_history') }}">My History & Results</a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>

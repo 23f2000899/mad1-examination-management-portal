@@ -65,6 +65,9 @@ def login():
                 if not user.is_approved:
                     return redirect(url_for('main.pending_approval'))
                 return redirect(url_for('main.examiner_dashboard'))
+
+            elif user.role == 'student':
+                return redirect(url_for('main.student_dashboard'))
             
             return redirect(url_for('main.index'))
         
@@ -659,3 +662,149 @@ def examiner_evaluate_student(booking_id):
         return redirect(url_for('main.examiner_slot_students', slot_id = booking.slot_id))
 
     return render_template('examiner/evaluate.html', booking=booking, exam=exam, rubrics=rubrics, existing_eval=existing_eval)
+
+
+
+
+# Student Routes
+
+@main_bp.route('/student/dashboard')
+@role_required('student')
+def student_dashboard():
+    # Active & upcoming bookings
+    my_bookings = Booking.query.filter_by(student_id=current_user.id).order_by(Booking.id.desc()).all()
+    
+    # Exams currently accepting bookings
+    today = date.today()
+    available_exams = Examination.query.filter(
+        (Examination.status == 'Booking Open') |
+        ((Examination.slot_booking_start <= today) & (Examination.slot_booking_end >= today))
+    ).all()
+    return render_template('student/dashboard.html', bookings=my_bookings, available_exams=available_exams)
+
+
+@main_bp.route('/student/exams')
+@role_required('student')
+def student_exams():
+    search = request.args.get('search', '').strip()
+    exam_type = request.args.get('type', '')
+    today = date.today()
+    query = Examination.query.filter(
+        (Examination.status == 'Booking Open') |
+        ((Examination.slot_booking_start <= today) & (Examination.slot_booking_end >= today))
+    )
+    if search:
+        query = query.filter(Examination.name.ilike(f'%{search}%'))
+    if exam_type:
+        query = query.filter_by(exam_type=exam_type)
+    exams = query.all()
+    return render_template('student/exams.html', exams=exams, search=search, selected_type=exam_type)
+
+
+@main_bp.route('/student/exam/<int:exam_id>/slots')
+@role_required('student')
+def student_exam_slots(exam_id):
+    exam = Examination.query.get_or_404(exam_id)
+
+    # Check if student already booked for this exam
+    existing_booking = Booking.query.join(ExaminationSlot).filter(
+        Booking.student_id == current_user.id,
+        ExaminationSlot.examination_id == exam.id,
+        Booking.status == 'Booked'
+    ).first()
+    slots = ExaminationSlot.query.filter_by(
+        examination_id=exam.id,
+        status='Available'
+    ).order_by(ExaminationSlot.date.asc(), ExaminationSlot.start_time.asc()).all()
+    return render_template('student/slots.html', exam=exam, slots=slots, existing_booking=existing_booking)
+
+
+@main_bp.route('/student/book/<int:slot_id>', methods=['POST'])
+@role_required('student')
+def student_book_slot(slot_id):
+    slot = ExaminationSlot.query.get_or_404(slot_id)
+    exam = slot.examination
+    today = date.today()
+
+    # 1) Timeline Validation
+    is_open = (exam.status == 'Booking Open') or (exam.slot_booking_start <= today <= exam.slot_booking_end)
+    if not is_open:
+        flash("Booking window is currently closed for this examination.", "danger")
+        return redirect(url_for('main.student_exam_slots', exam_id=exam.id))
+    
+    # 2) Prevent Duplicate Booking for the same examination
+    already_booked = Booking.query.join(ExaminationSlot).filter(
+        Booking.student_id == current_user.id,
+        ExaminationSlot.examination_id == exam.id,
+        Booking.status == 'Booked'
+    ).first()
+    if already_booked:
+        flash(f"You have already booked a slot for {exam.name}. Duplicate bookings are not allowed.", "warning")
+        return redirect(url_for('main.student_dashboard'))
+    
+    # 3) Prevent Overbooking
+    if slot.available_seats <= 0:
+        flash("This slot is already full. Please select an alternate slot.", "danger")
+        return redirect(url_for('main.student_exam_slots', exam_id=exam.id))
+    # 4) Perform booking & decrement seat counter
+    new_booking = Booking(
+        student_id=current_user.id,
+        slot_id=slot.id,
+        status='Booked'
+    )
+    slot.available_seats -= 1
+    if slot.available_seats == 0:
+        slot.status = 'Full'
+    db.session.add(new_booking)
+    db.session.commit()
+    flash(f"Successfully booked your slot on {slot.date} at {slot.start_time.strftime('%H:%M')}!", "success")
+    return redirect(url_for('main.student_dashboard'))
+
+
+
+@main_bp.route('/student/booking/<int:booking_id>/cancel', methods=['POST'])
+@role_required('student')
+def student_cancel_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.student_id != current_user.id:
+        flash("Unauthorized cancellation request.", "danger")
+        return redirect(url_for('main.student_dashboard'))
+    today = date.today()
+    exam = booking.slot.examination
+
+    # Can cancel only before booking end date and before slot date
+    if exam.slot_booking_end < today or booking.slot.date <= today:
+        flash("Bookings cannot be cancelled on or after the scheduled examination date.", "danger")
+        return redirect(url_for('main.student_dashboard'))
+    
+    # Release the seat back to the slot
+    slot = booking.slot
+    slot.available_seats += 1
+    if slot.status == 'Full':
+        slot.status = 'Available'
+    booking.status = 'Cancelled'
+    db.session.commit()
+    flash("Your booking has been cancelled and the slot is released.", "info")
+    return redirect(url_for('main.student_dashboard'))
+
+
+@main_bp.route('/student/history')
+@role_required('student')
+def student_history():
+    bookings = Booking.query.filter_by(student_id=current_user.id).order_by(Booking.id.desc()).all()
+    return render_template('student/history.html', bookings=bookings)
+
+
+
+@main_bp.route('/student/result/<int:booking_id>')
+@role_required('student')
+def student_view_result(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.student_id != current_user.id:
+        flash("Unauthorized access.", "danger")
+        return redirect(url_for('main.student_dashboard'))
+    evaluation = Evaluation.query.filter_by(booking_id=booking.id).first()
+    if not evaluation:
+        flash("Results have not yet been evaluated for this examination.", "info")
+        return redirect(url_for('main.student_history'))
+    return render_template('student/result.html', booking=booking, evaluation=evaluation)
