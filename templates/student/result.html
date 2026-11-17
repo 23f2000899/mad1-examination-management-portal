@@ -6,13 +6,18 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold mb-0">Official Examination Scorecard</h3>
     <div>
-        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm me-2">Print Scorecard</button>
+        <a href="{{ url_for('main.student_download_scorecard', booking_id=booking.id) }}" class="btn btn-success btn-sm me-2">
+            📥 Download Scorecard (.txt)
+        </a>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm me-2">
+            🖨️ Save as PDF
+        </button>
         <a href="{{ url_for('main.student_history') }}" class="btn btn-outline-primary btn-sm">&larr; Back to History</a>
     </div>
 </div>
 
 <!-- OFFICIAL SCOREBOARD FOR THE ENTIRE APP -->
- 
+
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card p-4">

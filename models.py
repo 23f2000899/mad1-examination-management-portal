@@ -93,11 +93,13 @@ class ExaminationSlot(db.Model):
     examiner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     date = db.Column(db.Date, nullable=False)
-    start_time = db.Column(db.DateTime, nullable=False)
-    end_time = db.Column(db.DateTime, nullable=False)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
     max_capacity = db.Column(db.Integer, nullable=False, default=1)
-    available_capacity = db.Column(db.Integer, nullable=False, default=1)
+    available_seats = db.Column(db.Integer, nullable=False, default=1)
     status = db.Column(db.String(20), default='Available') #Available, Full, Cancelled, Completed
+
+    examiner = db.relationship('User', foreign_keys=[examiner_id], backref='slots')
 
     bookings = db.relationship('Booking', backref='slot', cascade='all, delete-orphan', lazy=True)
 

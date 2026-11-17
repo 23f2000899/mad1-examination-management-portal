@@ -5,8 +5,8 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Student Portal</h3>
-        <p class="text-muted small mb-0">Welcome, {{ current_user.full_name }} &middot; Track your examination schedules and results</p>
+        <h3 class="fw-bold mb-1">Student Dashboard</h3>
+        <p class="text-muted small mb-0">Track your examination schedules and results</p>
     </div>
     <a href="{{ url_for('main.student_exams') }}" class="btn btn-primary btn-sm">+ Browse & Book Examinations</a>
 </div>
@@ -21,7 +21,7 @@
     </div>
     <table class="table mb-0 align-middle">
         <thead>
-            <tr><th>Examination</th><th>Course</th><th>Type</th><th>Scheduled Date & Time</th><th>Examiner</th><th>Action</th></tr>
+            <tr><th>Examination</th><th>Course</th><th>Type</th><th>Scheduled Date & Time</th><th>Examiner</th><th class="text-center">Action</th></tr>
         </thead>
         <tbody>
             {% set active_bookings = bookings | selectattr('status', 'equalto', 'Booked') | list %}
@@ -33,7 +33,7 @@
                     <td>{{ b.slot.examination.exam_type }}</td>
                     <td><strong>{{ b.slot.date }}</strong> ({{ b.slot.start_time.strftime('%H:%M') }} - {{ b.slot.end_time.strftime('%H:%M') }})</td>
                     <td>{{ b.slot.examiner.full_name }}</td>
-                    <td>
+                    <td class="text-center">
                         <form action="{{ url_for('main.student_cancel_booking', booking_id=b.id) }}" method="POST" onsubmit="return confirm('Cancel this booking?');">
                             <button type="submit" class="btn btn-outline-danger btn-sm">Cancel Booking</button>
                         </form>
@@ -54,7 +54,7 @@
     <div class="card-header">Examinations Open for Booking</div>
     <table class="table mb-0 align-middle">
         <thead>
-            <tr><th>Examination Title</th><th>Course</th><th>Type</th><th>Duration</th><th>Deadline</th><th class="text-end">Action</th></tr>
+            <tr><th>Examination Title</th><th>Course</th><th>Type</th><th>Duration</th><th>Deadline</th><th class="text-end" style="padding-right: 70px;">Action</th></tr>
         </thead>
         <tbody>
             {% if available_exams %}
@@ -65,7 +65,7 @@
                     <td>{{ exam.exam_type }}</td>
                     <td>{{ exam.duration }} mins</td>
                     <td class="text-danger fw-semibold">{{ exam.slot_booking_end }}</td>
-                    <td class="text-end">
+                    <td class="text-end" style="padding-right: 30px;">
                         <a href="{{ url_for('main.student_exam_slots', exam_id=exam.id) }}" class="btn btn-outline-primary btn-sm">View Slots & Book</a>
                     </td>
                 </tr>

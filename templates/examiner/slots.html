@@ -62,7 +62,7 @@
                 <td>#{{ s.id }}</td>
                 <td class="fw-semibold">{{ s.examination.name }}</td>
                 <td>{{ s.date }} ({{ s.start_time.strftime('%H:%M') }} - {{ s.end_time.strftime('%H:%M') }})</td>
-                <td>{{ s.available_seats }} / {{ s.max_capacity }} seats</td>
+                <td>{{ s.max_capacity - s.available_seats }}/{{ s.max_capacity }} seats</td>
                 <td><a href="{{ url_for('main.examiner_slot_students', slot_id=s.id) }}">{{ s.bookings|length }} student(s)</a></td>
                 <td class="text-end">
                     {% if s.bookings|length == 0 %}

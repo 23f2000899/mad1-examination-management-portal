@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from functools import wraps
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, make_response
 from flask_login import login_user, logout_user, login_required, current_user
 from models import (db, User, ExaminerProfile, Course, Examination, ExaminationRubric, ExaminationSlot, Booking, Evaluation, EvaluationScore)
 
@@ -152,7 +152,7 @@ def logout():
 
 
 
-#Admin Routes
+# Admin Routes
 
 @main_bp.route('/admin/dashboard')
 @role_required('admin')
@@ -167,6 +167,35 @@ def admin_dashboard():
     pending_examiners = User.query.filter_by(role='examiner', is_approved=False).all()
     recent_exams = Examination.query.order_by(Examination.id.desc()).limit(5).all()
 
+    # Analytical Charts
+    # 1) Exam Status
+    status_values = [
+        Examination.query.filter_by(status='Draft').count(),
+        Examination.query.filter_by(status='Slot Creation').count(),
+        Examination.query.filter_by(status='Booking Open').count(),
+        Examination.query.filter_by(status='Closed').count(),
+        Examination.query.filter_by(status='Completed').count()
+    ]
+
+    # 2) Examiner Workload
+    approved_examiners = User.query.filter_by(role='examiner', is_approved=True).all()
+    examiner_names = [ex.full_name for ex in approved_examiners]
+    examiner_slots_count = [
+        ExaminationSlot.query.filter_by(examiner_id=ex.id).count()
+        for ex in approved_examiners
+    ]
+
+    # 3) Booking Trends
+    exams_all = Examination.query.all()
+    exam_names = [e.name[:18] + '...' if len(e.name) > 18 else e.name for e in exams_all]
+    exam_bookings_count = []
+    for e in exams_all:
+        slots = ExaminationSlot.query.filter_by(examination_id=e.id).all()
+        slot_ids = [s.id for s in slots]
+        count = Booking.query.filter(Booking.slot_id.in_(slot_ids)).count() if slot_ids else 0
+        exam_bookings_count.append(count)
+
+
     return render_template(
         'admin/dashboard.html',
         total_courses=total_courses,
@@ -176,7 +205,14 @@ def admin_dashboard():
         total_slots=total_slots,
         total_bookings=total_bookings,
         pending_examiners=pending_examiners,
-        recent_exams=recent_exams
+        recent_exams=recent_exams,
+
+        #Chart Data
+        status_values=status_values,
+        examiner_names=examiner_names,
+        examiner_slots_count=examiner_slots_count,
+        exam_names=exam_names,
+        exam_bookings_count=exam_bookings_count
     )
 
 @main_bp.route('/admin/courses')
@@ -225,7 +261,7 @@ def admin_edit_course(course_id):
         db.session.commit()
         flash("Course updated successfully.", "success")
         return redirect(url_for('main.admin_courses'))
-    return render_template('admin/edit_course.html', course=course)
+    return render_template('admin/edit_courses.html', course=course)
 
 @main_bp.route('/admin/courses/delete/<int:course_id>', methods=['POST'])
 @role_required('admin')
@@ -267,21 +303,22 @@ def admin_add_examination():
     assigned_examiner_id = request.form.get('assigned_examiner_id') or None
 
     try:
-        slot_creation_start = datetime.strptime(request.form.get('slot_creation_start'), '%d-%m-%Y').date()
-        slot_creation_end = datetime.strptime(request.form.get('slot_creation_end'), '%d-%m-%Y').date()
-        slot_booking_start = datetime.strptime(request.form.get('slot_booking_start'), '%d-%m-%Y').date()
-        slot_booking_end = datetime.strptime(request.form.get('slot_booking_end'), '%d-%m-%Y').date()
-    except (ValueError, TypeError):
-        flash("Invalid data format.", "danger")
-        return redirect(url_for('main.admin_examinations'))
+        slot_creation_start = datetime.strptime(request.form.get('slot_creation_start'), '%Y-%m-%d').date()
+        slot_creation_end = datetime.strptime(request.form.get('slot_creation_end'), '%Y-%m-%d').date()
+        slot_booking_start = datetime.strptime(request.form.get('slot_booking_start'), '%Y-%m-%d').date()
+        slot_booking_end = datetime.strptime(request.form.get('slot_booking_end'), '%Y-%m-%d').date()
 
-    if slot_creation_start > slot_creation_end :
-        flash("Slot creation cannot be started after end date.", "danger")
+    except (ValueError, AttributeError):
+        flash("Invalid date format.", "danger")
         return redirect(url_for('main.admin_examinations'))
-
-    if slot_booking_start > slot_booking_end :
-            flash("Slot booking cannot be started after end date.", "danger")
-            return redirect(url_for('main.admin_examinations'))
+    
+    if slot_creation_start > slot_creation_end:
+        flash("Slot creation start date cannot be after slot creation end date.", "danger")
+        return redirect(url_for('main.admin_examinations'))
+    
+    if slot_booking_start > slot_booking_end:
+        flash("Slot booking start date cannot be after slot booking end date.", "danger")
+        return redirect(url_for('main.admin_examinations'))
 
     new_exam = Examination(
         course_id=course_id,
@@ -299,7 +336,7 @@ def admin_add_examination():
     db.session.add(new_exam)
     db.session.commit()
 
-    flash("Examination scheduled successfully.", "success")
+    flash("Examination scheduled successfully!", "success")
     return redirect(url_for('main.admin_examinations'))
 
 
@@ -317,10 +354,10 @@ def admin_edit_examination(exam_id):
         exam.assigned_examiner_id = request.form.get('assigned_examiner_id') or None
 
         try:
-            exam.slot_creation_start = datetime.strptime(request.form.get('slot_creation_start'), '%d-%m-%Y').date()
-            exam.slot_creation_end = datetime.strptime(request.form.get('slot_creation_end'), '%d-%m-%Y').date()
-            exam.slot_booking_start = datetime.strptime(request.form.get('slot_booking_start'), '%d-%m-%Y').date()
-            exam.slot_booking_end = datetime.strptime(request.form.get('slot_booking_end'), '%d-%m-%Y').date()
+            exam.slot_creation_start = datetime.strptime(request.form.get('slot_creation_start'), '%Y-%m-%d').date()
+            exam.slot_creation_end = datetime.strptime(request.form.get('slot_creation_end'), '%Y-%m-%d').date()
+            exam.slot_booking_start = datetime.strptime(request.form.get('slot_booking_start'), '%Y-%m-%d').date()
+            exam.slot_booking_end = datetime.strptime(request.form.get('slot_booking_end'), '%Y-%m-%d').date()
         except (ValueError, TypeError):
                 flash("Invalid data format.", "danger")
                 return redirect(url_for('main.admin_examinations', exam_id=exam.id))
@@ -331,7 +368,7 @@ def admin_edit_examination(exam_id):
 
     courses = Course.query.filter_by(status='Active').all()
     examiners = User.query.filter_by(role='examiner', is_approved=True).all()
-    return render_template('admin/edit_examination.html', exam=exam, courses=courses, examiners=examiners)
+    return render_template('admin/edit_examinations.html', exam=exam, courses=courses, examiners=examiners)
 
 
 @main_bp.route('/admin/examination/delete/<int:exam_id>', methods=['POST'])
@@ -512,7 +549,7 @@ def examiner_create_slot():
         return redirect(url_for('main.examiner_slots'))
 
     try:
-        slot_date = datetime.strptime(request.form.get('date'), '%d-%m-%Y').date()
+        slot_date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
         start_time_val = datetime.strptime(request.form.get('start_time'), '%H:%M').time()
         end_time_val = datetime.strptime(request.form.get('end_time'), '%H:%M').time()
         capacity = int(request.form.get('max_capacity', 1))
@@ -567,7 +604,7 @@ def examiner_edit_slot(slot_id):
         flash("Slot updated successfully.", "success")
         return redirect(url_for('main.examiner_slots'))
     
-    return render_template('examiner/edit_slot.html', slot=slot)
+    return render_template('examiner/edit_slots.html', slot=slot)
 
 
 
@@ -808,3 +845,61 @@ def student_view_result(booking_id):
         flash("Results have not yet been evaluated for this examination.", "info")
         return redirect(url_for('main.student_history'))
     return render_template('student/result.html', booking=booking, evaluation=evaluation)
+
+
+@main_bp.route('/student/result/<int:booking_id>/download')
+@role_required('student')
+def student_download_scorecard(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.student_id != current_user.id:
+        flash("Unauthorized access.", "danger")
+        return redirect(url_for('main.student_dashboard'))
+
+    eval_rec = Evaluation.query.filter_by(booking_id=booking.id).first()
+    if not eval_rec:
+        flash("No evaluation found to download.", "warning")
+        return redirect(url_for('main.student_history'))
+
+    exam = booking.slot.examination
+    pct = round((eval_rec.total_marks / exam.max_marks) * 100, 1)
+
+    # Build the official formatted scorecard document
+    lines = [
+        "=" * 60,
+        "          EXAMINATION MANAGEMENT PORTAL - OFFICIAL SCORECARD",
+        "=" * 60,
+        f"Candidate Name   : {booking.student.full_name}",
+        f"Roll / Username  : {booking.student.username}",
+        f"Candidate Email  : {booking.student.email}",
+        "-" * 60,
+        f"Course Code      : {exam.course.code}",
+        f"Course Title     : {exam.course.name}",
+        f"Examination      : {exam.name}",
+        f"Examination Type : {exam.exam_type}",
+        f"Evaluation Date  : {booking.slot.date}",
+        f"Evaluating Faculty: {booking.slot.examiner.full_name}",
+        "=" * 60,
+        "RUBRIC PERFORMANCE BREAKDOWN:",
+        "-" * 60,
+    ]
+    for s in eval_rec.scores:
+        lines.append(f"  * {s.rubric.criterion_name:<30} : {s.marks_obtained:>4.1f} / {s.rubric.max_marks} marks")
+
+    lines.extend([
+        "-" * 60,
+        f"TOTAL AGGREGATE SCORE : {eval_rec.total_marks} / {exam.max_marks} marks ({pct}%)",
+        f"FINAL CLASSIFICATION  : {'QUALIFIED / PASSED' if pct >= 50 else 'NEEDS IMPROVEMENT'}",
+        "-" * 60,
+        "FACULTY QUALITATIVE REMARKS:",
+        f"\"{eval_rec.remarks or 'Satisfactory performance recorded.'}\"",
+        "=" * 60,
+        "System Verified &middot; Examination Management Portal",
+    ])
+    
+    file_content = "\n".join(lines)
+
+    # Deliver as a downloadable text file attachment
+    response = make_response(file_content)
+    response.headers["Content-Disposition"] = f"attachment; filename=Scorecard_Booking_{booking.id}.txt"
+    response.headers["Content-Type"] = "text/plain; charset=utf-8"
+    return response

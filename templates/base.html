@@ -33,14 +33,17 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">Examination Management Portal</a>
+            <a class="navbar-brand fw-bold" href="{% if current_user.is_authenticated %}{% if current_user.role == 'admin' %}{{ url_for('main.admin_dashboard') }}{% elif current_user.role == 'examiner' %}{{ url_for('main.examiner_dashboard') }}{% else %}{{ url_for('main.student_dashboard') }}{% endif %}{% else %}{{ url_for('main.index') }}{% endif %}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/>
+    </svg>   EMP</a>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
                     {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                    <!--
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.admin_dashboard') }}">Dashboard</a>
-                    </li>
+                    </li> -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.admin_courses') }}">Courses</a>
                     </li>
@@ -55,17 +58,19 @@
                     </li>
 
                     {% elif current_user.is_authenticated and current_user.role == 'examiner' and current_user.is_approved %}
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.examiner_dashboard') }}">Dashboard</a>
-                    </li>
+                    </li> -->
+                    </li> 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.examiner_slots') }}">Slots</a>
                     </li>
 
                     {% elif current_user.is_authenticated and current_user.role == 'student' %}
+                    <!--
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.student_dashboard') }}">Dashboard</a>
-                    </li>
+                    </li> -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.student_exams') }}">Available Exams</a>
                     </li>
@@ -90,13 +95,13 @@
     </nav>
 
     <!-- Flash message alerts -->
-    <div class="container mt-3"></div>
+    <div class="container mt-3">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show" role="alert">
                         {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
             {% endif %}

@@ -99,6 +99,7 @@
                 </td>
                 <td><span class="badge bg-light text-dark border">{{ e.exam_type }}</span></td>
                 <td class="small">{{ e.duration }} mins &middot; {{ e.max_marks }} marks</td>
+
                 <td><span class="badge bg-info text-dark">{{ e.status }}</span></td>
                 <td class="text-end">
                     <a href="{{ url_for('main.admin_rubrics', exam_id=e.id) }}" class="btn btn-outline-info btn-sm me-1">Rubrics ({{ e.rubrics|length }})</a>

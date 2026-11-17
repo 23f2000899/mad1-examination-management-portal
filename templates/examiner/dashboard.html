@@ -5,8 +5,8 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Faculty Examiner Portal</h3>
-        <p class="text-muted small mb-0">Welcome, {{ current_user.full_name }} &middot; Manage your examination schedule and evaluations</p>
+        <h3 class="fw-bold mb-1">Faculty Examiner Dashboard</h3>
+        <p class="text-muted small mb-0">Examination slots and evaluations management</p>
     </div>
     <a href="{{ url_for('main.examiner_slots') }}" class="btn btn-primary btn-sm">+ Create Examination Slot</a>
 </div>
@@ -64,7 +64,7 @@
                 <td>#{{ slot.id }}</td>
                 <td class="fw-semibold">{{ slot.examination.name }}</td>
                 <td>{{ slot.date }} ({{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }})</td>
-                <td><span class="badge bg-success">{{ slot.available_seats }} / {{ slot.max_capacity }}</span></td>
+                <td><span class="badge bg-success">{{ slot.max_capacity - slot.available_seats }}/{{ slot.max_capacity }}</span></td>
                 <td><span class="badge bg-primary">{{ slot.bookings|length }} student(s)</span></td>
                 <td class="text-end">
                     <a href="{{ url_for('main.examiner_slot_students', slot_id=slot.id) }}" class="btn btn-outline-primary btn-sm">View Students & Evaluate</a>

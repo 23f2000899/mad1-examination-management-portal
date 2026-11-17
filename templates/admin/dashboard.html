@@ -5,7 +5,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-1">Administrative Overview</h3>
+        <h3 class="fw-bold mb-1">Administrative Dashboard</h3>
         <p class="text-muted small mb-0">Portal metrics, timeline monitoring, and faculty approvals</p>
     </div>
     <div>
@@ -25,6 +25,92 @@
     <div class="col-md-2"><div class="card p-3 text-center"><small class="text-muted fw-bold">SLOTS</small><h3 class="mb-0">{{total_slots}}</h3></div></div>
     <div class="col-md-2"><div class="card p-3 text-center"><small class="text-muted fw-bold">BOOKINGS</small><h3 class="mb-0 text-warning">{{total_bookings}}</h3></div></div>
 </div>
+
+
+<!-- Analytical Charts -->
+
+<div class="row g-3 mb-4">
+    
+    <!-- 1) Examination Completion & Status Breakdown -->
+    <div class="col-lg-4">
+        <div class="card p-3 h-100">
+            <h6 class="fw-bold text-secondary mb-2">1. Examination Completion & Status</h6>
+            <p class="small text-muted mb-3">Lifecycle distribution across all examinations</p>
+            
+            <table class="table table-sm align-middle mb-0">
+                <tbody>
+                    <tr>
+                        <td><span class="badge bg-success">Completed</span></td>
+                        <td class="text-end fw-bold">{{ status_values[4] }}</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge bg-primary">Booking Open</span></td>
+                        <td class="text-end fw-bold">{{ status_values[2] }}</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge bg-warning text-dark">Slot Creation</span></td>
+                        <td class="text-end fw-bold">{{ status_values[1] }}</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge bg-secondary">Draft</span></td>
+                        <td class="text-end fw-bold">{{ status_values[0] }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 2) Examiner Workload Distribution -->
+    <div class="col-lg-4">
+        <div class="card p-3 h-100">
+            <h6 class="fw-bold text-secondary mb-2">2. Examiner Workload</h6>
+            <p class="small text-muted mb-3">Total slots scheduled per faculty member</p>
+            
+            {% if examiner_names %}
+                <table class="table table-sm align-middle mb-0">
+                    <tbody>
+                        {% for i in range(examiner_names|length) %}
+                        <tr>
+                            <td class="fw-semibold small text-truncate" style="max-width: 140px;">{{ examiner_names[i] }}</td>
+                            <td class="text-end">
+                                <span class="badge bg-light text-primary border border-primary">{{ examiner_slots_count[i] }} slot(s)</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="text-muted small py-3 text-center">No approved faculty examiners yet.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 3) Booking Trends per Examination -->
+    <div class="col-lg-4">
+        <div class="card p-3 h-100">
+            <h6 class="fw-bold text-secondary mb-2">3. Candidate Booking Trends</h6>
+            <p class="small text-muted mb-3">Student enrollment numbers per examination</p>
+            
+            {% if exam_names %}
+                <table class="table table-sm align-middle mb-0">
+                    <tbody>
+                        {% for i in range(exam_names|length) %}
+                        <tr>
+                            <td class="fw-semibold small text-truncate" style="max-width: 150px;">{{ exam_names[i] }}</td>
+                            <td class="text-end">
+                                <span class="badge bg-success">{{ exam_bookings_count[i] }} student(s)</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="text-muted small py-2">No examinations scheduled yet.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 
 
 <!-- Pending Approvals Alert -->
